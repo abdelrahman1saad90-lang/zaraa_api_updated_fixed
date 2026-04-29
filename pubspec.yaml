@@ -1,0 +1,48 @@
+name: zaraa_flutter
+description: Zaraa - Smart AI Plant Disease Detection App — Flutter conversion of the Zaraa Angular web app.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # ── State Management ──────────────────────────────────────────
+  flutter_bloc: ^8.1.6
+  equatable: ^2.0.5
+
+  # ── Networking ────────────────────────────────────────────────
+  dio: ^5.4.3
+
+  # ── Navigation ────────────────────────────────────────────────
+  go_router: ^13.2.5
+
+  # ── Image ─────────────────────────────────────────────────────
+  image_picker: ^1.1.2
+  cached_network_image: ^3.3.1
+
+  # ── Local Storage ─────────────────────────────────────────────
+  shared_preferences: ^2.2.3
+
+  # ── UI Components ─────────────────────────────────────────────
+  carousel_slider: ^5.0.0
+  shimmer: ^3.0.0
+
+  # ── Utilities ─────────────────────────────────────────────────
+  intl: ^0.19.0
+  cupertino_icons: ^1.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Local image assets (add your own images here)
+  assets:
+    - assets/images/
