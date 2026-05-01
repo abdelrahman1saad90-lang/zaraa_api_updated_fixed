@@ -14,7 +14,13 @@ class CartService {
   Future<ApiResponse<CartModel>> getCart() async {
     try {
       final response = await _client.dio.get(ApiConstants.cartIndex);
-      final cart = CartModel.fromJson(response.data as Map<String, dynamic>);
+      
+      dynamic rawData = response.data;
+      if (rawData is Map && (rawData.containsKey('returned') || rawData.containsKey('data'))) {
+        rawData = rawData['returned'] ?? rawData['data'];
+      }
+      
+      final cart = CartModel.fromJson(rawData as Map<String, dynamic>);
       return ApiResponse.success(cart);
     } on DioException catch (e) {
       return ApiResponse.failure(_parseDioError(e));
@@ -41,10 +47,11 @@ class CartService {
   }
 
   // ── Increment Count (FIXED: cartItemId) ──────────────────
-  Future<ApiResponse<String>> incrementCount(int cartItemId) async {
+  Future<ApiResponse<String>> incrementCount(int productId) async {
     try {
-      await _client.dio.patch(
-        '${ApiConstants.cartIncrementCount}$cartItemId',
+      await _client.dio.post(
+        ApiConstants.cartIncrementCount,
+        data: {'productId': productId},
       );
       return const ApiResponse.success('Count incremented.');
     } on DioException catch (e) {
@@ -53,10 +60,11 @@ class CartService {
   }
 
   // ── Decrement Count (FIXED: cartItemId) ──────────────────
-  Future<ApiResponse<String>> decrementCount(int cartItemId) async {
+  Future<ApiResponse<String>> decrementCount(int productId) async {
     try {
-      await _client.dio.patch(
-        '${ApiConstants.cartDecrementCount}$cartItemId',
+      await _client.dio.post(
+        ApiConstants.cartDecrementCount,
+        data: {'productId': productId},
       );
       return const ApiResponse.success('Count decremented.');
     } on DioException catch (e) {
@@ -65,10 +73,11 @@ class CartService {
   }
 
   // ── Remove From Cart (FIXED: cartItemId) ─────────────────
-  Future<ApiResponse<String>> removeFromCart(int cartItemId) async {
+  Future<ApiResponse<String>> removeFromCart(int productId) async {
     try {
-      await _client.dio.patch(
-        '${ApiConstants.cartDeleteProduct}$cartItemId',
+      await _client.dio.post(
+        ApiConstants.cartDeleteProduct,
+        data: {'productId': productId},
       );
       return const ApiResponse.success('Product removed from cart.');
     } on DioException catch (e) {

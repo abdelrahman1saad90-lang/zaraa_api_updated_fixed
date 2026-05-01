@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../core/constants/app_strings.dart';
 import '../../core/models/models.dart';
 import '../../core/services/shop_service.dart';
 
@@ -51,15 +52,25 @@ class ShopCubit extends Cubit<ShopState> {
 
   ShopCubit(this._service) : super(const ShopInitial());
 
-  Future<void> loadProducts({String category = 'All Categories'}) async {
+  Future<void> loadProducts({
+    String? category,
+    int? categoryId,
+    String? search,
+    double? minPrice,
+    double? maxPrice,
+  }) async {
     emit(const ShopLoading());
 
     final res = await _service.getProducts(
-      category: category == 'All Categories' ? null : category,
+      category: category == AppStrings.allCategories ? null : category,
+      categoryId: categoryId,
+      productName: search,
+      minPrice: minPrice,
+      maxPrice: maxPrice,
     );
 
     if (res.isSuccess) {
-      emit(ShopLoaded(res.data!, category));
+      emit(ShopLoaded(res.data!, category ?? AppStrings.allCategories));
     } else {
       emit(ShopError(res.error ?? 'Failed to load products'));
     }

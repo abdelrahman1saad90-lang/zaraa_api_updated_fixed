@@ -37,9 +37,6 @@ void main() async {
     statusBarIconBrightness: Brightness.dark,
   ));
 
-  // Initialize the Dio HTTP client
-  await ApiClient.instance.init();
-
   runApp(const ZaraaApp());
 }
 

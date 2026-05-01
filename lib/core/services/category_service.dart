@@ -14,7 +14,12 @@ class CategoryService {
     try {
       final response = await _client.dio.get(ApiConstants.categoriesIndex);
 
-      final rawList = response.data as List<dynamic>? ?? [];
+      dynamic rawData = response.data;
+      if (rawData is Map) {
+        rawData = rawData['returned'] ?? rawData['data'] ?? rawData;
+      }
+
+      final rawList = rawData as List<dynamic>? ?? [];
 
       final categories = rawList
           .map((item) => CategoryModel.fromJson(item as Map<String, dynamic>))

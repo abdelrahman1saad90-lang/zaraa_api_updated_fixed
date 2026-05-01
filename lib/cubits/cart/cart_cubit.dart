@@ -18,7 +18,11 @@ class CartInitial extends CartState {
 }
 
 class CartLoading extends CartState {
-  const CartLoading();
+  final CartModel? previousCart;
+  const CartLoading({this.previousCart});
+
+  @override
+  List<Object?> get props => [previousCart];
 }
 
 class CartLoaded extends CartState {
@@ -56,7 +60,9 @@ class CartCubit extends Cubit<CartState> {
 
   // ── Load Cart ─────────────────────────────────────────────
   Future<void> loadCart() async {
-    emit(const CartLoading());
+    final currentCart = state is CartLoaded ? (state as CartLoaded).cart : null;
+    emit(CartLoading(previousCart: currentCart));
+    
     final res = await _service.getCart();
     if (res.isSuccess) {
       emit(CartLoaded(res.data!));
@@ -79,8 +85,8 @@ class CartCubit extends Cubit<CartState> {
   }
 
   // ── Increment (FIXED: cartItemId) ────────────────────────
-  Future<void> increment(int cartItemId) async {
-    final res = await _service.incrementCount(cartItemId);
+  Future<void> increment(int productId) async {
+    final res = await _service.incrementCount(productId);
     if (res.isSuccess) {
       await loadCart();
     } else {
@@ -89,8 +95,8 @@ class CartCubit extends Cubit<CartState> {
   }
 
   // ── Decrement (FIXED: cartItemId) ────────────────────────
-  Future<void> decrement(int cartItemId) async {
-    final res = await _service.decrementCount(cartItemId);
+  Future<void> decrement(int productId) async {
+    final res = await _service.decrementCount(productId);
     if (res.isSuccess) {
       await loadCart();
     } else {
@@ -99,8 +105,8 @@ class CartCubit extends Cubit<CartState> {
   }
 
   // ── Remove Item (FIXED: cartItemId) ──────────────────────
-  Future<void> removeItem(int cartItemId) async {
-    final res = await _service.removeFromCart(cartItemId);
+  Future<void> removeItem(int productId) async {
+    final res = await _service.removeFromCart(productId);
     if (res.isSuccess) {
       await loadCart();
     } else {

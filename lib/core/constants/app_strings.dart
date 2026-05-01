@@ -80,6 +80,11 @@ class AppStrings {
   static const String addToCart = 'Add to Cart';
   static const String soldOut = 'Sold Out';
   static const String organic = 'Organic';
+  static const String searchProducts = 'Search Products';
+  static const String searchHint = 'Search here...';
+  static const String category = 'Category';
+  static const String minPrice = 'Min Price';
+  static const String maxPrice = 'Max Price';
 
   // History
   static const String diagnosisHistory = 'Diagnosis History';

@@ -30,8 +30,10 @@ class ShopService {
 
       final response = await _client.dio.get(
         ApiConstants.products,
-        queryParameters: {'page': page},
-        data: body.isEmpty ? null : body,
+        queryParameters: {
+          'page': page,
+          ...body,
+        },
       );
 
       final returned = response.data['returned'] as Map<String, dynamic>?;

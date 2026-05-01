@@ -74,6 +74,24 @@ class CategoryCubit extends Cubit<CategoryState> {
     }
   }
 
+  /// Manually update categories (e.g. from Shop product list).
+  void updateCategories(List<CategoryModel> newCategories) {
+    final Map<int, CategoryModel> uniqueMap = {
+      for (var c in _cachedCategories) c.id: c,
+    };
+
+    for (var c in newCategories) {
+      uniqueMap[c.id] = c;
+    }
+
+    _cachedCategories = uniqueMap.values.toList();
+    
+    // Sort by name for better UX
+    _cachedCategories.sort((a, b) => a.name.compareTo(b.name));
+    
+    emit(CategoryLoaded(_cachedCategories));
+  }
+
   /// Create a new category.
   Future<void> createCategory({
     required String name,

@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import '../constants/app_strings.dart';
 
 // ============================================================
@@ -316,7 +317,7 @@ enum DiagnosisStatus {
 // ============================================================
 // CATEGORY MODEL — from /api/Admin/Categories/Index
 // ============================================================
-class CategoryModel {
+class CategoryModel extends Equatable {
   final int id;
   final String name;
   final String? description;
@@ -328,6 +329,9 @@ class CategoryModel {
     this.description,
     this.status = true,
   });
+
+  @override
+  List<Object?> get props => [id, name, description, status];
 
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
     return CategoryModel(
@@ -348,13 +352,14 @@ class CategoryModel {
 // ============================================================
 // PRODUCT MODEL — shop items from AgriCureSystem API
 // ============================================================
-class ProductModel {
+class ProductModel extends Equatable {
   final String id;
   final String name;
   final String imageUrl;
   final double price;
   final double discountedPrice;
   final String category;
+  final int? categoryId;
   final String? brand;
   final double rating;
   final int reviewCount;
@@ -372,6 +377,7 @@ class ProductModel {
     required this.price,
     required this.discountedPrice,
     required this.category,
+    this.categoryId,
     this.brand,
     this.rating = 4.5,
     this.reviewCount = 0,
@@ -382,6 +388,26 @@ class ProductModel {
     this.description,
     this.currency = 'EGP',
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        name,
+        imageUrl,
+        price,
+        discountedPrice,
+        category,
+        categoryId,
+        brand,
+        rating,
+        reviewCount,
+        isOrganic,
+        isSoldOut,
+        discount,
+        quantity,
+        description,
+        currency,
+      ];
 
   String get displayPrice => '${currency ?? 'EGP'} ${discountedPrice.toStringAsFixed(2)}';
 
@@ -399,8 +425,9 @@ class ProductModel {
       price: price,
       discountedPrice: discounted,
       discount: discountPct,
-      category: (json['category'] as Map<String, dynamic>?)?['name'] ?? '',
-      brand: (json['brand'] as Map<String, dynamic>?)?['name'],
+      category: json['category'] is Map ? (json['category']['name'] ?? '') : (json['category']?.toString() ?? ''),
+      categoryId: json['category'] is Map ? (json['category']['categoryId'] ?? json['category']['id']) : null,
+      brand: json['brand'] is Map ? json['brand']['name'] : json['brand']?.toString(),
       rating: (json['rate'] ?? 4.5).toDouble(),
       reviewCount: json['traffic'] ?? 0,
       isSoldOut: qty <= 0,
@@ -551,35 +578,37 @@ class WeatherModel {
     airQuality: 'Good',
   );
 
-  /// Parses a Visual Crossing API response.
-  /// https://weather.visualcrossing.com/.../timeline/{location}?unitGroup=metric&include=current
+  /// Parses an Open-Meteo API response.
   factory WeatherModel.fromJson(Map<String, dynamic> json) {
-    final current =
-        json['currentConditions'] as Map<String, dynamic>? ?? {};
+    final current = json['current_weather'] ?? json['current'] ?? {};
 
-    // Capitalize each word of the resolved address, e.g. "cairo" → "Cairo, EG"
-    final rawAddress = json['resolvedAddress'] as String? ?? 'Unknown';
-    final location = rawAddress
-        .split(',')
-        .take(2)
-        .map((part) => part
-            .trim()
-            .split(' ')
-            .map((w) => w.isEmpty
-                ? ''
-                : '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}')
-            .join(' '))
-        .join(', ');
-
-    final conditions = current['conditions'] as String? ?? 'Good';
+    const location = 'Cairo, EG';
+    
+    final code = current['weathercode'] ?? current['weather_code'] ?? 0;
+    String conditions = 'Good';
+    String iconStr = 'clear-day';
+    
+    if (code == 0) {
+      conditions = 'Clear';
+      iconStr = 'clear-day';
+    } else if (code >= 1 && code <= 3) {
+      conditions = 'Partly Cloudy';
+      iconStr = 'partly-cloudy-day';
+    } else if (code >= 51 && code <= 67) {
+      conditions = 'Rainy';
+      iconStr = 'rain';
+    } else if (code >= 71) {
+      conditions = 'Snow';
+      iconStr = 'snow';
+    }
 
     return WeatherModel(
-      location: location.isEmpty ? 'Cairo, EG' : location,
-      temperature: (current['temp'] ?? 0).toDouble(),
-      humidity: (current['humidity'] ?? 0).toDouble().toInt(),
-      windSpeed: (current['windspeed'] ?? 0).toDouble(),
+      location: location,
+      temperature: (current['temperature'] ?? current['temperature_2m'] ?? 0).toDouble(),
+      humidity: (current['relative_humidity_2m'] ?? 45).toDouble().toInt(),
+      windSpeed: (current['windspeed'] ?? current['wind_speed_10m'] ?? 0).toDouble(),
       airQuality: conditions,
-      icon: current['icon'] as String?,
+      icon: iconStr,
     );
   }
 }
