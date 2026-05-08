@@ -23,6 +23,7 @@ class AppStrings {
   static const String diagnosis = 'Diagnosis';
   static const String myGarden = 'My Garden';
   static const String shop = 'Shop';
+  static const String cart = 'My Cart';
   static const String history = 'History';
   static const String newScan = 'New Scan';
 
@@ -156,6 +157,18 @@ class ApiConstants {
   static const String categoriesEdit = 'api/Admin/Categories/Edit/';
   static const String categoriesDelete = 'api/Admin/Categories/Delete/';
 
+  // ── Products (Admin) ─────────────────────────────────────────
+  static const String adminProductsIndex = 'apiAdmin/Products/Index';
+  static const String adminProductsDetails = 'apiAdmin/Products/Details/';
+  static const String adminProductsCreate = 'apiAdmin/Products/Create';
+  static const String adminProductsEdit = 'apiAdmin/Products/Edit/';
+  static const String adminProductsDelete = 'apiAdmin/Products/Delete/';
+
+  // ── Users (Admin) ────────────────────────────────────────────
+  static const String adminUsersIndex = 'api/Admin/Users/Index';
+  static const String adminUsersLockUnlock = 'api/Admin/Users/LockUnlock/';
+  static const String adminUsersUpdateRole = 'api/Admin/Users/UpdateRole/';
+
 // ── Cart ─────────────────────────────────────────────────────
   static const String cartAddToCart = 'api/Customer/Carts/AddToCart';
   static const String cartIndex = 'api/Customer/Carts/Index';
@@ -199,7 +212,18 @@ class AppRoutes {
   static const String diagnosisResult = '/diagnosis/result';
   static const String myGarden = '/my-garden';
   static const String shop = '/shop';
+  static const String cart = '/cart';
+  static const String checkout = '/checkout';
   static const String history = '/history';
   static const String orders = '/orders';
   static const String orderDetail = '/orders/detail';
+
+  // Admin Routes
+  static const String adminMain = '/admin';
+  static const String adminDashboard = '/admin/dashboard';
+  static const String adminOrders = '/admin/orders';
+  static const String adminProducts = '/admin/products';
+  static const String adminCategories = '/admin/categories';
+  static const String adminUsers = '/admin/users';
+  static const String adminInventory = '/admin/inventory';
 }

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../core/constants/app_colors.dart';
 import '../core/constants/app_strings.dart';
+import '../widgets/cart_badge_icon.dart';
 
 /// Wraps all authenticated screens with an animated floating bottom nav bar.
 class MainScaffold extends StatelessWidget {
@@ -33,6 +34,12 @@ class MainScaffold extends StatelessWidget {
       activeIcon: Icons.storefront_rounded,
       label: 'Shop',
       route: AppRoutes.shop,
+    ),
+    _TabItem(
+      icon: Icons.shopping_cart_outlined,
+      activeIcon: Icons.shopping_cart_rounded,
+      label: 'Cart',
+      route: AppRoutes.cart,
     ),
     _TabItem(
       icon: Icons.history_edu_outlined,
@@ -254,12 +261,18 @@ class _NavItem extends StatelessWidget {
           children: [
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),
-              child: Icon(
-                isSelected ? tab.activeIcon : tab.icon,
-                key: ValueKey(isSelected),
-                color: isSelected ? AppColors.primary : AppColors.textMuted,
-                size: 22,
-              ),
+              child: tab.label == 'Cart' 
+                  ? CartBadgeIcon(
+                      icon: tab.icon,
+                      activeIcon: tab.activeIcon,
+                      isSelected: isSelected,
+                    )
+                  : Icon(
+                      isSelected ? tab.activeIcon : tab.icon,
+                      key: ValueKey(isSelected),
+                      color: isSelected ? AppColors.primary : AppColors.textMuted,
+                      size: 22,
+                    ),
             ),
             const SizedBox(height: 4),
             AnimatedDefaultTextStyle(

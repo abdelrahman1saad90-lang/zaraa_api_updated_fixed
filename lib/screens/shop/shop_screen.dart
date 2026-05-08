@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
@@ -143,9 +144,7 @@ class _ShopScreenState extends State<ShopScreen> {
                       Icons.shopping_cart_outlined,
                       color: Color(0xFF1A1A1A),
                     ),
-                    onPressed: () {
-                      // TODO: Navigate to cart screen
-                    },
+                    onPressed: () => context.go(AppRoutes.cart),
                   ),
                   if (totalItems > 0)
                     Positioned(

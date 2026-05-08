@@ -12,6 +12,9 @@ import 'core/services/diagnosis_service.dart';
 import 'core/services/shop_service.dart';
 import 'core/services/weather_service.dart';
 import 'core/services/order_service.dart';
+import 'core/services/admin/admin_orders_service.dart';
+import 'core/services/admin/admin_products_service.dart';
+import 'core/services/admin/admin_users_service.dart';
 
 import 'cubits/auth/auth_cubit.dart';
 import 'cubits/cart/cart_cubit.dart';
@@ -20,6 +23,9 @@ import 'cubits/diagnosis/diagnosis_cubit.dart';
 import 'cubits/shop/shop_cubit.dart';
 import 'cubits/weather/weather_cubit.dart';
 import 'cubits/orders/orders_cubit.dart';
+import 'cubits/admin/admin_orders_cubit.dart';
+import 'cubits/admin/admin_products_cubit.dart';
+import 'cubits/admin/admin_users_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -74,6 +80,15 @@ class ZaraaApp extends StatelessWidget {
         // Orders cubit — Admin orders
         BlocProvider<OrdersCubit>(
           create: (_) => OrdersCubit(OrderService()),
+        ),
+        BlocProvider<AdminOrdersCubit>(
+          create: (_) => AdminOrdersCubit(AdminOrdersService()),
+        ),
+        BlocProvider<AdminProductsCubit>(
+          create: (_) => AdminProductsCubit(AdminProductsService()),
+        ),
+        BlocProvider<AdminUsersCubit>(
+          create: (_) => AdminUsersCubit(AdminUsersService()),
         ),
       ],
       child: MaterialApp.router(

@@ -35,9 +35,9 @@ class CartService {
     try {
       await _client.dio.post(
         ApiConstants.cartAddToCart,
-        data: {
+        queryParameters: {
           "productId": productId,
-          "quantity": count, // ✅ بدل count
+          "count": count,
         },
       );
       return const ApiResponse.success('Product added to cart.');
@@ -49,9 +49,8 @@ class CartService {
   // ── Increment Count (FIXED: cartItemId) ──────────────────
   Future<ApiResponse<String>> incrementCount(int productId) async {
     try {
-      await _client.dio.post(
-        ApiConstants.cartIncrementCount,
-        data: {'productId': productId},
+      await _client.dio.patch(
+        '${ApiConstants.cartIncrementCount}/$productId',
       );
       return const ApiResponse.success('Count incremented.');
     } on DioException catch (e) {
@@ -62,9 +61,8 @@ class CartService {
   // ── Decrement Count (FIXED: cartItemId) ──────────────────
   Future<ApiResponse<String>> decrementCount(int productId) async {
     try {
-      await _client.dio.post(
-        ApiConstants.cartDecrementCount,
-        data: {'productId': productId},
+      await _client.dio.patch(
+        '${ApiConstants.cartDecrementCount}/$productId',
       );
       return const ApiResponse.success('Count decremented.');
     } on DioException catch (e) {
@@ -75,9 +73,8 @@ class CartService {
   // ── Remove From Cart (FIXED: cartItemId) ─────────────────
   Future<ApiResponse<String>> removeFromCart(int productId) async {
     try {
-      await _client.dio.post(
-        ApiConstants.cartDeleteProduct,
-        data: {'productId': productId},
+      await _client.dio.patch(
+        '${ApiConstants.cartDeleteProduct}/$productId',
       );
       return const ApiResponse.success('Product removed from cart.');
     } on DioException catch (e) {

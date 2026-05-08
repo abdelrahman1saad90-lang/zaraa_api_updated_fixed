@@ -12,6 +12,15 @@ import 'screens/landing/landing_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/main_scaffold.dart';
+import 'screens/admin/admin_main_screen.dart';
+import 'screens/admin/admin_dashboard_screen.dart';
+import 'screens/admin/orders_management_screen.dart';
+import 'screens/admin/products_management_screen.dart';
+import 'screens/admin/product_form_screen.dart';
+import 'screens/admin/categories_management_screen.dart';
+import 'screens/admin/category_form_screen.dart';
+import 'screens/admin/users_management_screen.dart';
+import 'screens/admin/inventory_management_screen.dart';
 import 'screens/dashboard/dashboard_screen.dart';
 import 'screens/diagnosis/diagnosis_screen.dart';
 import 'screens/diagnosis/diagnosis_result_screen.dart';
@@ -20,6 +29,21 @@ import 'screens/shop/shop_screen.dart';
 import 'screens/history/history_screen.dart';
 import 'screens/orders/orders_list_screen.dart';
 import 'screens/orders/order_detail_screen.dart';
+import 'screens/cart/cart_screen.dart';
+import 'screens/checkout/checkout_screen.dart';
+
+/// Smooth fade transition for all admin routes
+CustomTransitionPage<void> _fadePage(Widget child, GoRouterState state) {
+  return CustomTransitionPage(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 250),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(opacity: animation, child: child);
+    },
+  );
+}
+
 class AppRouter {
   AppRouter._();
 
@@ -61,11 +85,30 @@ class AppRouter {
         return AppRoutes.landing;
       }
 
-      // Authenticated user on a public route (except splash) → send to dashboard
+      // Authenticated user on a public route (except splash) → send to dashboard or admin
       if (authState is AuthAuthenticated &&
           isPublic &&
           path != AppRoutes.splash) {
+        if (authState.user.roles.contains('Admin') || authState.user.roles.contains('SuperAdmin')) {
+          return AppRoutes.adminDashboard;
+        }
         return AppRoutes.dashboard;
+      }
+
+      // If user goes to /admin directly, redirect to /admin/dashboard
+      if (path == AppRoutes.adminMain) {
+        return AppRoutes.adminDashboard;
+      }
+
+      // ── Security: Non-admin cannot access /admin/* routes ───────
+      if (path.startsWith('/admin')) {
+        if (authState is AuthAuthenticated) {
+          final isAdmin = authState.user.roles.contains('Admin') ||
+              authState.user.roles.contains('SuperAdmin');
+          if (!isAdmin) return AppRoutes.dashboard;
+        } else {
+          return AppRoutes.landing;
+        }
       }
 
       return null; // No redirect
@@ -139,6 +182,69 @@ class AppRouter {
           final order = state.extra as OrderModel;
           return OrderDetailScreen(initialOrder: order);
         },
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRoutes.cart,
+        builder: (context, state) => const CartScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRoutes.checkout,
+        builder: (context, state) => const CheckoutScreen(),
+      ),
+
+      // ── Admin shell (sidebar nav) ─────────────────────
+      ShellRoute(
+        builder: (context, state, child) => AdminMainScreen(child: child),
+        routes: [
+          GoRoute(
+            path: AppRoutes.adminDashboard,
+            pageBuilder: (_, state) => _fadePage(const AdminDashboardScreen(), state),
+          ),
+          GoRoute(
+            path: AppRoutes.adminOrders,
+            pageBuilder: (_, state) => _fadePage(const OrdersManagementScreen(), state),
+          ),
+          GoRoute(
+            path: AppRoutes.adminProducts,
+            pageBuilder: (_, state) => _fadePage(const ProductsManagementScreen(), state),
+          ),
+          GoRoute(
+            path: '${AppRoutes.adminProducts}/create',
+            builder: (_, __) => const ProductFormScreen(),
+          ),
+          GoRoute(
+            path: '${AppRoutes.adminProducts}/edit',
+            builder: (context, state) {
+              final product = state.extra as ProductModel;
+              return ProductFormScreen(existingProduct: product);
+            },
+          ),
+          GoRoute(
+            path: AppRoutes.adminCategories,
+            pageBuilder: (_, state) => _fadePage(const CategoriesManagementScreen(), state),
+          ),
+          GoRoute(
+            path: '${AppRoutes.adminCategories}/create',
+            builder: (_, __) => const CategoryFormScreen(),
+          ),
+          GoRoute(
+            path: '${AppRoutes.adminCategories}/edit',
+            builder: (context, state) {
+              final category = state.extra as CategoryModel;
+              return CategoryFormScreen(existingCategory: category);
+            },
+          ),
+          GoRoute(
+            path: AppRoutes.adminUsers,
+            pageBuilder: (_, state) => _fadePage(const UsersManagementScreen(), state),
+          ),
+          GoRoute(
+            path: AppRoutes.adminInventory,
+            pageBuilder: (_, state) => _fadePage(const InventoryManagementScreen(), state),
+          ),
+        ],
       ),
     ],
   );

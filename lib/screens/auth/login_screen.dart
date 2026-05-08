@@ -56,7 +56,11 @@ class _LoginScreenState extends State<LoginScreen> {
     return BlocListener<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
-          context.go(AppRoutes.dashboard);
+          if (state.user.roles.contains('Admin') || state.user.roles.contains('SuperAdmin')) {
+            context.go(AppRoutes.adminMain);
+          } else {
+            context.go(AppRoutes.dashboard);
+          }
         } else if (state is AuthError) {
           setState(() => _errorBanner = state.message);
         }

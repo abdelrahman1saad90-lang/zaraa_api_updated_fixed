@@ -16,12 +16,25 @@ class OrdersListScreen extends StatefulWidget {
 
 class _OrdersListScreenState extends State<OrdersListScreen> {
   OrderStatus? _selectedFilter;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     // Load orders when screen opens
     context.read<OrdersCubit>().loadOrders();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.toLowerCase();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -48,6 +61,33 @@ class _OrdersListScreenState extends State<OrdersListScreen> {
       ),
       body: Column(
         children: [
+          // Search Bar
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search by Order # or Customer...',
+                prefixIcon: const Icon(Icons.search, color: AppColors.textMuted),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.surfaceBorder),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.surfaceBorder),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.primary),
+                ),
+              ),
+            ),
+          ),
+          
           // Filter Chips
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -115,6 +155,17 @@ class _OrdersListScreenState extends State<OrdersListScreen> {
                   displayOrders = displayOrders
                       .where((o) => o.status == _selectedFilter)
                       .toList();
+                }
+
+                if (_searchQuery.isNotEmpty) {
+                  displayOrders = displayOrders.where((o) {
+                    final orderId = o.id.toString();
+                    final customerName = o.customerName?.toLowerCase() ?? '';
+                    final customerEmail = o.customerEmail?.toLowerCase() ?? '';
+                    return orderId.contains(_searchQuery) ||
+                        customerName.contains(_searchQuery) ||
+                        customerEmail.contains(_searchQuery);
+                  }).toList();
                 }
 
                 if (displayOrders.isEmpty) {

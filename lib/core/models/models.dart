@@ -15,6 +15,7 @@ class UserModel {
   final String? planType;
   final String? token;        // AccessToken (JWT)
   final String? refreshToken;
+  final List<String> roles;
 
   const UserModel({
     required this.id,
@@ -27,6 +28,7 @@ class UserModel {
     this.planType,
     this.token,
     this.refreshToken,
+    this.roles = const [],
   });
 
   /// Returns initials like "AS" from "Abdelrahman Saad"
@@ -45,6 +47,13 @@ class UserModel {
     String? accessToken,
     String? refreshToken,
   }) {
+    List<String> userRoles = [];
+    if (json['roles'] != null) {
+      userRoles = List<String>.from(json['roles']);
+    } else if (json['role'] != null) {
+      userRoles = [json['role'].toString()];
+    }
+    
     return UserModel(
       id: json['applicationUserId']?.toString() ?? '',
       fullName: json['name'] ?? json['userName'] ?? '',
@@ -55,10 +64,18 @@ class UserModel {
       planType: 'Basic',
       token: accessToken,
       refreshToken: refreshToken,
+      roles: userRoles,
     );
   }
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    List<String> userRoles = [];
+    if (json['roles'] != null) {
+      userRoles = List<String>.from(json['roles']);
+    } else if (json['role'] != null) {
+      userRoles = [json['role'].toString()];
+    }
+
     return UserModel(
       id: json['id']?.toString() ?? '',
       fullName: json['fullName'] ?? json['name'] ?? json['userName'] ?? '',
@@ -70,6 +87,7 @@ class UserModel {
       planType: json['planType'] ?? 'Basic',
       token: json['token'],
       refreshToken: json['refreshToken'],
+      roles: userRoles,
     );
   }
 
@@ -84,6 +102,7 @@ class UserModel {
         'planType': planType,
         'token': token,
         'refreshToken': refreshToken,
+        'roles': roles,
       };
 
   UserModel copyWith({
@@ -97,6 +116,7 @@ class UserModel {
     String? planType,
     String? token,
     String? refreshToken,
+    List<String>? roles,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -109,6 +129,7 @@ class UserModel {
       planType: planType ?? this.planType,
       token: token ?? this.token,
       refreshToken: refreshToken ?? this.refreshToken,
+      roles: roles ?? this.roles,
     );
   }
 }

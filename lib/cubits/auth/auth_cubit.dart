@@ -41,6 +41,7 @@ class AuthCubit extends Cubit<AuthState> {
         email: '$lowerEmail@zaraa.com',
         token: 'bypass_token',
         refreshToken: 'bypass_refresh',
+        roles: lowerEmail == 'admin' ? ['Admin'] : [],
       );
       emit(AuthAuthenticated(bypassUser));
       return;

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants/app_strings.dart';
@@ -40,8 +41,10 @@ class ApiClient {
           final prefs = await SharedPreferences.getInstance();
           final token = prefs.getString(_tokenKey);
 
-          print("REQUEST → ${options.path}");
-          print("TOKEN → $token");
+          // Only log in debug mode — never in production
+          if (kDebugMode) {
+            debugPrint('REQUEST → ${options.path}');
+          }
 
           if (token != null && token.isNotEmpty && !_isAnonymousRequest(options.path)) {
             options.headers['Authorization'] = 'Bearer $token';
@@ -80,9 +83,12 @@ class ApiClient {
       ),
     );
 
-    _dio.interceptors.add(
-      LogInterceptor(requestBody: true, responseBody: true),
-    );
+    // Only attach verbose logging in debug mode
+    if (kDebugMode) {
+      _dio.interceptors.add(
+        LogInterceptor(requestBody: false, responseBody: false),
+      );
+    }
 
     _initialized = true;
   }
