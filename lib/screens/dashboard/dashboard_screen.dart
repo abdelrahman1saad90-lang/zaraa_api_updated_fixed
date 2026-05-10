@@ -224,7 +224,7 @@ class _DashboardAppBar extends StatelessWidget {
             ),
             child: ClipOval(
               child: Image.asset(
-                'assets/images/zaraa_logo.png',
+                'assets/images/big_zaraa.png',
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => const Center(
                   child: Text('Z',

@@ -96,7 +96,7 @@ class MainScaffold extends StatelessWidget {
                   ),
                   child: ClipOval(
                     child: Image.asset(
-                      'assets/images/zaraa_logo.png',
+                      'assets/images/big_zaraa.png',
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => const Center(
                         child: Text('Z',
@@ -126,6 +126,15 @@ class MainScaffold extends StatelessWidget {
               children: [
                 _DrawerItem(
                   icon: Icons.receipt_long_rounded,
+                  label: 'My Orders',
+                  onTap: () {
+                    Navigator.pop(context); // Close drawer
+                    context.go(AppRoutes.myOrders);
+                  },
+                ),
+                const Divider(indent: 20, endIndent: 20, color: AppColors.surfaceBorder),
+                _DrawerItem(
+                  icon: Icons.admin_panel_settings_rounded,
                   label: 'Admin Orders',
                   onTap: () {
                     Navigator.pop(context); // Close drawer

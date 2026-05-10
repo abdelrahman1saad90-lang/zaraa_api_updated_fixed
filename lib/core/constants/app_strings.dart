@@ -87,6 +87,33 @@ class AppStrings {
   static const String minPrice = 'Min Price';
   static const String maxPrice = 'Max Price';
 
+  // Checkout
+  static const String checkout = 'Checkout';
+  static const String shippingDetails = 'Shipping Details';
+  static const String deliveryAddress = 'Delivery Address';
+  static const String phoneNumber = 'Phone Number';
+  static const String orderNotes = 'Order Notes (Optional)';
+  static const String paymentMethod = 'Payment Method';
+  static const String onlinePayment = 'Online Payment (Stripe)';
+  static const String orderSummary = 'Order Summary';
+  static const String confirmAndPay = 'Confirm & Pay';
+  static const String processing = 'Processing...';
+  static const String totalToPay = 'Total to Pay';
+  static const String paymentSuccessTitle = 'Payment Successful!';
+  static const String paymentSuccessMsg = 'Your order has been placed successfully.';
+  static const String paymentCancelTitle = 'Payment Cancelled';
+  static const String paymentCancelMsg = 'Your payment was cancelled. Your cart items are still saved.';
+  static const String paymentFailedTitle = 'Payment Failed';
+  static const String paymentFailedMsg = 'Something went wrong with your payment. Please try again.';
+  static const String verifyingPayment = 'Verifying your payment...';
+  static const String viewOrders = 'View My Orders';
+  static const String continueShopping = 'Continue Shopping';
+  static const String retryPayment = 'Retry Payment';
+  static const String returnToCart = 'Return to Cart';
+  static const String myOrders = 'My Orders';
+  static const String noOrdersYet = 'No orders yet';
+  static const String startShopping = 'Start Shopping';
+
   // History
   static const String diagnosisHistory = 'Diagnosis History';
   static const String historySubtitle = "Tracking the journey of your garden's health.";
@@ -158,11 +185,11 @@ class ApiConstants {
   static const String categoriesDelete = 'api/Admin/Categories/Delete/';
 
   // ── Products (Admin) ─────────────────────────────────────────
-  static const String adminProductsIndex = 'apiAdmin/Products/Index';
+  static const String adminProductsIndex   = 'apiAdmin/Products/Index';
   static const String adminProductsDetails = 'apiAdmin/Products/Details/';
-  static const String adminProductsCreate = 'apiAdmin/Products/Create';
-  static const String adminProductsEdit = 'apiAdmin/Products/Edit/';
-  static const String adminProductsDelete = 'apiAdmin/Products/Delete/';
+  static const String adminProductsCreate  = 'apiAdmin/Products/Create';
+  static const String adminProductsEdit    = 'apiAdmin/Products/Edit/';
+  static const String adminProductsDelete  = 'apiAdmin/Products/Delete/';
 
   // ── Users (Admin) ────────────────────────────────────────────
   static const String adminUsersIndex = 'api/Admin/Users/Index';
@@ -177,12 +204,23 @@ class ApiConstants {
   static const String cartDeleteProduct = 'api/Customer/Carts/DeleteProduct';
   static const String cartPay = 'api/Customer/Carts/Pay';
 
+  // ── Orders (Customer — fallback to Admin if needed) ──────────
+  static const String customerOrdersIndex = 'api/Customer/Orders/Index';
+  static const String customerOrdersGet = 'api/Customer/Orders/Get/';
+
   // ── Orders (Admin) ───────────────────────────────────────────
   static const String ordersGetAll = 'api/Admin/Orders/GetAll';
   static const String ordersGet = 'api/Admin/Orders/Get/';
   static const String ordersShipped = 'api/Admin/Orders/Shipped/';
   static const String ordersComplete = 'api/Admin/Orders/Complete/';
   static const String ordersCanceled = 'api/Admin/Orders/Canceled/';
+
+  // ── Brands (Admin) ────────────────────────────────────────────
+  static const String brandsIndex = 'apiAdmin/Brands/Index';
+  static const String brandsCreate = 'apiAdmin/Brands/Create';
+  static const String brandsDetails = 'apiAdmin/Brands/Details/';
+  static const String brandsEdit = 'apiAdmin/Brands/Edit/';
+  static const String brandsDelete = 'apiAdmin/Brands/Delete/';
 
   // ── Static assets ────────────────────────────────────────────
   /// Full image URL = baseUrl + /images/ + imageName
@@ -217,6 +255,17 @@ class AppRoutes {
   static const String history = '/history';
   static const String orders = '/orders';
   static const String orderDetail = '/orders/detail';
+
+  // Checkout / Payment flow
+  static const String paymentSuccess = '/payment-success';
+  static const String paymentCancel = '/payment-cancel';
+  static const String paymentFailed = '/payment-failed';
+  static const String paymentProcessing = '/payment-processing';
+  static const String paymentWebview = '/checkout/payment-webview';
+
+  // User order history
+  static const String myOrders = '/my-orders';
+  static const String myOrderDetail = '/my-orders/detail';
 
   // Admin Routes
   static const String adminMain = '/admin';

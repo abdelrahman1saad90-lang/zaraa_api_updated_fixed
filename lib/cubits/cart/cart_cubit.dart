@@ -41,16 +41,8 @@ class CartError extends CartState {
   List<Object?> get props => [message];
 }
 
-class CartPaymentReady extends CartState {
-  final String paymentUrl;
-  const CartPaymentReady(this.paymentUrl);
-
-  @override
-  List<Object?> get props => [paymentUrl];
-}
-
 // ══════════════════════════════════════════════════════════════
-// CUBIT
+// CUBIT — Cart management (no payment logic — see CheckoutCubit)
 // ══════════════════════════════════════════════════════════════
 
 class CartCubit extends Cubit<CartState> {
@@ -84,7 +76,7 @@ class CartCubit extends Cubit<CartState> {
     }
   }
 
-  // ── Increment (FIXED: cartItemId) ────────────────────────
+  // ── Increment ─────────────────────────────────────────────
   Future<void> increment(int productId) async {
     final res = await _service.incrementCount(productId);
     if (res.isSuccess) {
@@ -94,7 +86,7 @@ class CartCubit extends Cubit<CartState> {
     }
   }
 
-  // ── Decrement (FIXED: cartItemId) ────────────────────────
+  // ── Decrement ─────────────────────────────────────────────
   Future<void> decrement(int productId) async {
     final res = await _service.decrementCount(productId);
     if (res.isSuccess) {
@@ -104,7 +96,7 @@ class CartCubit extends Cubit<CartState> {
     }
   }
 
-  // ── Remove Item (FIXED: cartItemId) ──────────────────────
+  // ── Remove Item ───────────────────────────────────────────
   Future<void> removeItem(int productId) async {
     final res = await _service.removeFromCart(productId);
     if (res.isSuccess) {
@@ -114,14 +106,19 @@ class CartCubit extends Cubit<CartState> {
     }
   }
 
-  // ── Pay ─────────────────────────────────────────────────
-  Future<void> pay() async {
-    emit(const CartLoading());
-    final res = await _service.pay();
-    if (res.isSuccess) {
-      emit(CartPaymentReady(res.data!));
-    } else {
-      emit(CartError(res.error!));
+  // ── Clear Cart (post-payment) ─────────────────────────────
+  /// Reloads cart — after successful payment, backend should have
+  /// already cleared it. This just refreshes local state.
+  Future<void> clearCart() async {
+    await loadCart();
+  }
+
+  /// Access current cart total (convenience getter)
+  double get currentTotal {
+    if (state is CartLoaded) {
+      return (state as CartLoaded).cart.totalPrice;
     }
+    return 0;
   }
 }
+

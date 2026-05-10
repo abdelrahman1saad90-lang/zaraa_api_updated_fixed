@@ -89,16 +89,29 @@ class _ProductsManagementScreenState extends State<ProductsManagementScreen> {
                   builder: (context, state) {
                     List<ProductModel>? products;
                     bool isLoading = false;
+                    String? errorMessage;
 
                     if (state is AdminProductsLoading) {
                       products = state.previousProducts;
                       isLoading = true;
                     } else if (state is AdminProductsLoaded) {
                       products = state.products;
+                    } else if (state is AdminProductsError) {
+                      errorMessage = state.message;
                     }
 
                     if (products == null && isLoading) {
                       return const ShimmerLoader(count: 6);
+                    }
+
+                    // Show error if no products could be loaded
+                    if (errorMessage != null && (products == null || products.isEmpty)) {
+                      return EmptyStateWidget(
+                        icon: Icons.error_outline_rounded,
+                        title: 'Failed to Load Products',
+                        subtitle: errorMessage,
+                        onRetry: () => context.read<AdminProductsCubit>().loadProducts(),
+                      );
                     }
 
                     if (products == null || products.isEmpty) {

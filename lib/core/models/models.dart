@@ -76,9 +76,16 @@ class UserModel {
       userRoles = [json['role'].toString()];
     }
 
+    // Build fullName from firstName + lastName if fullName is not available
+    String fullName = json['fullName'] ?? json['name'] ?? '';
+    if (fullName.isEmpty && (json['firstName'] != null || json['lastName'] != null)) {
+      fullName = '${json['firstName'] ?? ''} ${json['lastName'] ?? ''}'.trim();
+    }
+    if (fullName.isEmpty) fullName = json['userName'] ?? '';
+
     return UserModel(
       id: json['id']?.toString() ?? '',
-      fullName: json['fullName'] ?? json['name'] ?? json['userName'] ?? '',
+      fullName: fullName,
       userName: json['userName'] ?? '',
       email: json['email'] ?? '',
       phoneNumber: json['phoneNumber'],
@@ -434,10 +441,24 @@ class ProductModel extends Equatable {
 
   /// Map from AgriCureSystem API product object
   factory ProductModel.fromJson(Map<String, dynamic> json) {
-    final price = (json['price'] ?? 0.0).toDouble();
-    final discountPct = (json['discount'] ?? 0.0).toDouble();
+    final price = num.tryParse(json['price']?.toString() ?? '0')?.toDouble() ?? 0.0;
+    final discountPct = num.tryParse(json['discount']?.toString() ?? '0')?.toDouble() ?? 0.0;
     final discounted = price - price * (discountPct / 100);
-    final qty = (json['quantity'] ?? 0) as int;
+    final qty = int.tryParse(json['quantity']?.toString() ?? '0') ?? 0;
+
+    // categoryId: read from nested category object OR top-level field
+    int? catId;
+    if (json['category'] is Map) {
+      catId = json['category']['categoryId'] ?? json['category']['id'];
+    }
+    catId ??= json['categoryId'];
+
+    // status from admin API: true = active/available, false = sold-out/hidden
+    // isSoldOut = qty <= 0, but also respect explicit status=false
+    bool isSoldOut = qty <= 0;
+    if (json['status'] != null && json['status'] == false) {
+      isSoldOut = true;
+    }
 
     return ProductModel(
       id: json['productId']?.toString() ?? json['id']?.toString() ?? '',
@@ -446,12 +467,16 @@ class ProductModel extends Equatable {
       price: price,
       discountedPrice: discounted,
       discount: discountPct,
-      category: json['category'] is Map ? (json['category']['name'] ?? '') : (json['category']?.toString() ?? ''),
-      categoryId: json['category'] is Map ? (json['category']['categoryId'] ?? json['category']['id']) : null,
-      brand: json['brand'] is Map ? json['brand']['name'] : json['brand']?.toString(),
-      rating: (json['rate'] ?? 4.5).toDouble(),
-      reviewCount: json['traffic'] ?? 0,
-      isSoldOut: qty <= 0,
+      category: json['category'] is Map
+          ? (json['category']['name'] ?? '')
+          : (json['category']?.toString() ?? ''),
+      categoryId: catId,
+      brand: json['brand'] is Map
+          ? json['brand']['name']
+          : json['brand']?.toString(),
+      rating: num.tryParse(json['rate']?.toString() ?? '4.5')?.toDouble() ?? 4.5,
+      reviewCount: int.tryParse(json['traffic']?.toString() ?? '0') ?? 0,
+      isSoldOut: isSoldOut,
       quantity: qty,
       description: json['description'],
       currency: 'EGP',
@@ -763,6 +788,93 @@ enum OrderStatus {
 }
 
 // ============================================================
+// PAYMENT STATUS ENUM — tracks Stripe payment lifecycle
+// ============================================================
+enum PaymentStatus {
+  pending,
+  paid,
+  failed,
+  refunded;
+
+  static PaymentStatus fromString(String s) {
+    switch (s.toLowerCase()) {
+      case 'paid':
+      case 'succeeded':
+      case 'complete':
+        return PaymentStatus.paid;
+      case 'failed':
+      case 'expired':
+        return PaymentStatus.failed;
+      case 'refunded':
+        return PaymentStatus.refunded;
+      default:
+        return PaymentStatus.pending;
+    }
+  }
+
+  String get label {
+    switch (this) {
+      case PaymentStatus.pending:
+        return 'Pending';
+      case PaymentStatus.paid:
+        return 'Paid';
+      case PaymentStatus.failed:
+        return 'Failed';
+      case PaymentStatus.refunded:
+        return 'Refunded';
+    }
+  }
+}
+
+// ============================================================
+// SHIPPING DETAILS MODEL — local-only, persisted for checkout
+// ============================================================
+class ShippingDetailsModel {
+  final String address;
+  final String phone;
+  final String? notes;
+
+  const ShippingDetailsModel({
+    required this.address,
+    required this.phone,
+    this.notes,
+  });
+
+  factory ShippingDetailsModel.fromJson(Map<String, dynamic> json) {
+    return ShippingDetailsModel(
+      address: json['address'] ?? '',
+      phone: json['phone'] ?? '',
+      notes: json['notes'],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'address': address,
+    'phone': phone,
+    'notes': notes,
+  };
+
+  bool get isValid => address.trim().length >= 5 && phone.trim().length >= 8;
+}
+
+// ============================================================
+// CHECKOUT SESSION RESULT — returned by createCheckoutSession
+// ============================================================
+class CheckoutSessionResult {
+  final String paymentUrl;
+  final int? inferredOrderId;
+  final double cartTotal;
+  final DateTime createdAt;
+
+  const CheckoutSessionResult({
+    required this.paymentUrl,
+    this.inferredOrderId,
+    required this.cartTotal,
+    required this.createdAt,
+  });
+}
+
+// ============================================================
 // ORDER ITEM MODEL
 // ============================================================
 class OrderItemModel {
@@ -794,28 +906,38 @@ class OrderItemModel {
 }
 
 // ============================================================
-// ORDER MODEL
+// ORDER MODEL — enhanced with payment & shipping fields
 // ============================================================
 class OrderModel {
   final int id;
   final OrderStatus status;
+  final PaymentStatus paymentStatus;
   final String? customerName;
   final String? customerEmail;
   final String? customerPhone;
   final String? address;
+  final String? notes;
+  final String? paymentMethod;
+  final String? stripeSessionId;
   final double totalPrice;
   final DateTime createdAt;
+  final DateTime? updatedAt;
   final List<OrderItemModel> items;
 
   const OrderModel({
     required this.id,
     required this.status,
+    this.paymentStatus = PaymentStatus.pending,
     this.customerName,
     this.customerEmail,
     this.customerPhone,
     this.address,
+    this.notes,
+    this.paymentMethod,
+    this.stripeSessionId,
     required this.totalPrice,
     required this.createdAt,
+    this.updatedAt,
     required this.items,
   });
 
@@ -830,21 +952,70 @@ class OrderModel {
     return '${months[d.month]} ${d.day}, ${d.year} at ${hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')} $ampm';
   }
 
+  /// Infer payment status from order status when backend doesn't provide it
+  PaymentStatus get effectivePaymentStatus {
+    if (paymentStatus != PaymentStatus.pending) return paymentStatus;
+    // If order is processing/shipped/completed, payment was likely successful
+    if (status == OrderStatus.processing ||
+        status == OrderStatus.shipped ||
+        status == OrderStatus.completed) {
+      return PaymentStatus.paid;
+    }
+    if (status == OrderStatus.canceled) {
+      return PaymentStatus.failed;
+    }
+    return PaymentStatus.pending;
+  }
+
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     final rawItems = json['items'] ?? json['orderItems'] as List<dynamic>? ?? [];
-    
+
+    // Handle nested customer object from Admin/Orders API
+    final customer = json['customer'];
+    String? custName;
+    String? custEmail;
+    String? custPhone;
+    if (customer is Map<String, dynamic>) {
+      custName = '${customer['firstName'] ?? ''} ${customer['lastName'] ?? ''}'.trim();
+      custEmail = customer['email'];
+      custPhone = customer['phoneNumber'];
+    }
+
+    // Parse date from multiple possible field names
+    DateTime parsedDate = DateTime.now();
+    final dateStr = json['createdAt'] ?? json['dateTime'] ?? json['orderDate'];
+    if (dateStr != null) {
+      try {
+        parsedDate = DateTime.parse(dateStr.toString());
+      } catch (_) {}
+    }
+
+    // Parse updated date
+    DateTime? parsedUpdated;
+    final updatedStr = json['updatedAt'] ?? json['modifiedAt'];
+    if (updatedStr != null) {
+      try {
+        parsedUpdated = DateTime.parse(updatedStr.toString());
+      } catch (_) {}
+    }
+
     return OrderModel(
       id: json['id'] ?? json['orderId'] ?? 0,
-      status: OrderStatus.fromString(json['status'] ?? 'pending'),
-      customerName: json['customerName'] ?? json['userName'],
-      customerEmail: json['customerEmail'] ?? json['email'],
-      customerPhone: json['customerPhone'] ?? json['phoneNumber'],
+      status: OrderStatus.fromString(json['orderStatus'] ?? json['status'] ?? 'pending'),
+      paymentStatus: PaymentStatus.fromString(json['paymentStatus'] ?? ''),
+      customerName: json['customerName'] ?? custName,
+      customerEmail: json['customerEmail'] ?? custEmail,
+      customerPhone: json['customerPhone'] ?? custPhone,
       address: json['address'] ?? json['shippingAddress'],
+      notes: json['notes'] ?? json['orderNotes'],
+      paymentMethod: json['paymentMethod'] ?? 'Stripe',
+      stripeSessionId: json['stripeSessionId'] ?? json['sessionId'],
       totalPrice: (json['totalPrice'] ?? json['total'] ?? 0.0).toDouble(),
-      createdAt: json['createdAt'] != null || json['orderDate'] != null 
-          ? DateTime.parse(json['createdAt'] ?? json['orderDate']) 
-          : DateTime.now(),
-      items: rawItems.map((e) => OrderItemModel.fromJson(e as Map<String, dynamic>)).toList(),
+      createdAt: parsedDate,
+      updatedAt: parsedUpdated,
+      items: rawItems is List
+          ? rawItems.map((e) => OrderItemModel.fromJson(e as Map<String, dynamic>)).toList()
+          : [],
     );
   }
 }

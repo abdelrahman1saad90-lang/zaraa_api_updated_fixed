@@ -18,8 +18,8 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   void _onNavigate(String route) {
-    if (Scaffold.of(context).hasDrawer && _scaffoldKey.currentState?.isDrawerOpen == true) {
-      Navigator.pop(context); // Close drawer
+    if (_scaffoldKey.currentState?.hasDrawer == true && _scaffoldKey.currentState?.isDrawerOpen == true) {
+      _scaffoldKey.currentState?.closeDrawer();
     }
     context.go(route);
   }

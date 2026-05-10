@@ -198,7 +198,7 @@ class _LoginCard extends StatelessWidget {
                   color: AppColors.surfaceAlt,
                 ),
                 child: ClipOval(
-                  child: Image.asset('assets/images/zaraa_logo.png', fit: BoxFit.cover),
+                  child: Image.asset('assets/images/big_zaraa.png', fit: BoxFit.cover),
                 ),
               ),
             ),

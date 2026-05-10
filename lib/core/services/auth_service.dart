@@ -28,8 +28,8 @@ class AuthService {
         },
       );
 
-      final accessToken = response.data['accessToken'];
-      final refreshToken = response.data['refreshToken'];
+      final accessToken = response.data['accessToken'] as String?;
+      final refreshToken = response.data['refreshToken'] as String?;
 
       if (accessToken == null || accessToken.isEmpty) {
         return const ApiResponse.failure('Login failed: no token received.');
@@ -37,14 +37,49 @@ class AuthService {
 
       await _client.saveTokens(accessToken, refreshToken ?? '');
 
-      // get profile
-      final profileRes = await _client.dio.get(ApiConstants.profile);
+      // Decode JWT to extract role and userId (Profile endpoint doesn't return roles)
+      final jwtPayload = _decodeJwtPayload(accessToken);
+      final jwtRole = jwtPayload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+      final jwtUserId = jwtPayload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ?? '';
+      final jwtEmail = jwtPayload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] ?? '';
+      final jwtUserName = jwtPayload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ?? '';
 
-      final user = UserModel.fromProfileJson(
-        profileRes.data,
-        accessToken: accessToken,
-        refreshToken: refreshToken,
-      );
+      List<String> roles = [];
+      if (jwtRole is String) {
+        roles = [jwtRole];
+      } else if (jwtRole is List) {
+        roles = List<String>.from(jwtRole);
+      }
+
+      // Get profile for additional user details
+      UserModel user;
+      try {
+        final profileRes = await _client.dio.get(ApiConstants.profile);
+        final profileData = profileRes.data as Map<String, dynamic>;
+
+        user = UserModel(
+          id: jwtUserId.toString(),
+          fullName: '${profileData['firstName'] ?? ''} ${profileData['lastName'] ?? ''}'.trim(),
+          userName: profileData['userName'] ?? jwtUserName,
+          email: profileData['email'] ?? jwtEmail,
+          phoneNumber: profileData['phoneNumber'],
+          address: profileData['address'],
+          token: accessToken,
+          refreshToken: refreshToken,
+          roles: roles,
+        );
+      } catch (_) {
+        // Profile fetch failed — build user from JWT claims only
+        user = UserModel(
+          id: jwtUserId.toString(),
+          fullName: jwtUserName,
+          userName: jwtUserName,
+          email: jwtEmail,
+          token: accessToken,
+          refreshToken: refreshToken,
+          roles: roles,
+        );
+      }
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_userKey, jsonEncode(user.toJson()));
@@ -197,6 +232,24 @@ class AuthService {
       return UserModel.fromJson(jsonDecode(userJson));
     } catch (_) {
       return null;
+    }
+  }
+
+  // ================= JWT DECODE HELPER =================
+  /// Decodes a JWT token payload without external dependencies.
+  /// Only decodes — does NOT verify signature.
+  Map<String, dynamic> _decodeJwtPayload(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return {};
+
+      final payload = parts[1];
+      // JWT uses base64url encoding, add padding if needed
+      final normalized = base64Url.normalize(payload);
+      final decoded = utf8.decode(base64Url.decode(normalized));
+      return jsonDecode(decoded) as Map<String, dynamic>;
+    } catch (_) {
+      return {};
     }
   }
 }

@@ -38,6 +38,10 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   @override
   void initState() {
     super.initState();
+    // Default values for CREATE mode
+    _brandIdCtrl.text = '1';
+    _discountCtrl.text = '0';
+
     if (_isEdit) {
       final p = widget.existingProduct!;
       _nameCtrl.text = p.name;
@@ -80,16 +84,24 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    debugPrint('── _submit() called ──');
+
+    if (!_formKey.currentState!.validate()) {
+      debugPrint('── Form validation FAILED ──');
+      return;
+    }
 
     if (_selectedCategoryId == null) {
+      debugPrint('── Category not selected ──');
       _showSnackBar('Please select a category', isError: true);
       return;
     }
 
-    if (!_isEdit && _selectedImage == null) {
-      _showSnackBar('Please select a product image', isError: true);
-      return;
+    // Image is optional — the server may accept products without one
+    if (_selectedImage != null) {
+      debugPrint('── Image selected: ${_selectedImage!.path} ──');
+    } else {
+      debugPrint('── No image selected (proceeding without image) ──');
     }
 
     setState(() => _isSubmitting = true);
@@ -106,6 +118,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       mainImgPath: _selectedImage?.path,
     );
 
+    debugPrint('── Sending product: ${requestData.name}, price=${requestData.price}, cat=${requestData.categoryId} ──');
+
     bool success;
     if (!_isEdit) {
       success = await context.read<AdminProductsCubit>().createProduct(requestData);
@@ -115,6 +129,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         requestData,
       );
     }
+
+    debugPrint('── Result: success=$success ──');
 
     if (!mounted) return;
     setState(() => _isSubmitting = false);

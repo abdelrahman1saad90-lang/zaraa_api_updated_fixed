@@ -52,6 +52,7 @@ class AdminOrdersCubit extends Cubit<AdminOrdersState> {
 
     final res = await _service.getAllOrders();
     if (res.isSuccess) {
+      _cachedOrders = res.data!;
       emit(AdminOrdersLoaded(res.data!));
     } else {
       emit(AdminOrdersError(res.error!));
@@ -91,4 +92,46 @@ class AdminOrdersCubit extends Cubit<AdminOrdersState> {
       emit(AdminOrdersLoaded(currentOrders));
     }
   }
+
+  // ── Revenue & Statistics ──────────────────────────────────
+
+  List<OrderModel> _cachedOrders = [];
+
+  List<OrderModel> get allOrders => _cachedOrders;
+
+  /// Total revenue from all completed/processing/shipped orders
+  double get totalRevenue => _cachedOrders
+      .where((o) => o.status != OrderStatus.canceled)
+      .fold(0.0, (sum, o) => sum + o.totalPrice);
+
+  /// Revenue from orders in the last 30 days
+  double get monthlyRevenue {
+    final cutoff = DateTime.now().subtract(const Duration(days: 30));
+    return _cachedOrders
+        .where((o) => o.status != OrderStatus.canceled && o.createdAt.isAfter(cutoff))
+        .fold(0.0, (sum, o) => sum + o.totalPrice);
+  }
+
+  /// Order counts by status
+  Map<OrderStatus, int> get statusCounts {
+    final counts = <OrderStatus, int>{};
+    for (final status in OrderStatus.values) {
+      counts[status] = _cachedOrders.where((o) => o.status == status).length;
+    }
+    return counts;
+  }
+
+  /// Pending orders count (high priority metric)
+  int get pendingCount =>
+      _cachedOrders.where((o) => o.status == OrderStatus.pending).length;
+
+  /// Orders today
+  int get todayOrdersCount {
+    final today = DateTime.now();
+    return _cachedOrders.where((o) =>
+        o.createdAt.year == today.year &&
+        o.createdAt.month == today.month &&
+        o.createdAt.day == today.day).length;
+  }
 }
+

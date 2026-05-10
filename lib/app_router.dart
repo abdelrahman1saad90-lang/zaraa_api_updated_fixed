@@ -31,6 +31,12 @@ import 'screens/orders/orders_list_screen.dart';
 import 'screens/orders/order_detail_screen.dart';
 import 'screens/cart/cart_screen.dart';
 import 'screens/checkout/checkout_screen.dart';
+import 'screens/checkout/payment_success_screen.dart';
+import 'screens/checkout/payment_cancel_screen.dart';
+import 'screens/checkout/payment_failed_screen.dart';
+import 'screens/checkout/payment_processing_screen.dart';
+import 'screens/checkout/stripe_payment_webview.dart';
+import 'screens/orders/my_orders_screen.dart';
 
 /// Smooth fade transition for all admin routes
 CustomTransitionPage<void> _fadePage(Widget child, GoRouterState state) {
@@ -192,6 +198,55 @@ class AppRouter {
         parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.checkout,
         builder: (context, state) => const CheckoutScreen(),
+        routes: [
+          GoRoute(
+            path: 'payment-webview',
+            builder: (context, state) {
+              final url = state.extra as String;
+              return StripePaymentWebView(url: url);
+            },
+          ),
+        ],
+      ),
+
+      // ── Payment result routes (no bottom nav) ──────────────
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRoutes.paymentSuccess,
+        builder: (context, state) {
+          final order = state.extra as OrderModel?;
+          return PaymentSuccessScreen(order: order);
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRoutes.paymentCancel,
+        builder: (_, __) => const PaymentCancelScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRoutes.paymentFailed,
+        builder: (_, __) => const PaymentFailedScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRoutes.paymentProcessing,
+        builder: (_, __) => const PaymentProcessingScreen(),
+      ),
+
+      // ── User order history routes ─────────────────────────
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRoutes.myOrders,
+        builder: (_, __) => const MyOrdersScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRoutes.myOrderDetail,
+        builder: (context, state) {
+          final order = state.extra as OrderModel;
+          return OrderDetailScreen(initialOrder: order);
+        },
       ),
 
       // ── Admin shell (sidebar nav) ─────────────────────

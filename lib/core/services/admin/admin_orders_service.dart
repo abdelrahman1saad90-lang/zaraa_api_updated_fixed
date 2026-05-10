@@ -11,16 +11,10 @@ class AdminOrdersService {
   Future<ApiResponse<List<OrderModel>>> getAllOrders() async {
     try {
       final response = await _client.dio.get(ApiConstants.ordersGetAll);
-      
-      dynamic rawData = response.data;
-      if (rawData is Map && (rawData.containsKey('returned') || rawData.containsKey('data'))) {
-        rawData = rawData['returned'] ?? rawData['data'];
-      }
-      
-      final items = (rawData as List).map((e) => OrderModel.fromJson(e)).toList();
+      final rawData = _extractDataList(response.data);
+      final items = rawData.map((e) => OrderModel.fromJson(e)).toList();
       // Sort by date descending
       items.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      
       return ApiResponse.success(items);
     } on DioException catch (e) {
       return ApiResponse.failure(_parseDioError(e));
@@ -62,6 +56,18 @@ class AdminOrdersService {
     } on DioException catch (e) {
       return ApiResponse.failure(_parseDioError(e));
     }
+  }
+
+  /// Extracts the list from API response wrapper `{data: [...]}` or raw list.
+  List<Map<String, dynamic>> _extractDataList(dynamic responseData) {
+    if (responseData is List) {
+      return responseData.cast<Map<String, dynamic>>();
+    }
+    if (responseData is Map) {
+      final list = responseData['data'] ?? responseData['returned'];
+      if (list is List) return list.cast<Map<String, dynamic>>();
+    }
+    return [];
   }
 
   String _parseDioError(DioException exception) {

@@ -13,7 +13,7 @@ import '../../cubits/auth/auth_state.dart';
 ///
 /// Flow:
 ///   1. Play entrance animation (~1.5s)
-///   2. Wait for AuthCubit to resolve  
+///   2. Wait for AuthCubit to resolve
 ///   3. If authenticated → auto-navigate to Dashboard after brief pause
 ///   4. If unauthenticated → reveal CTA buttons
 class SplashScreen extends StatefulWidget {
@@ -23,8 +23,7 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
-    with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
   late AnimationController _contentCtrl;
   late AnimationController _networkCtrl;
   late AnimationController _pulseCtrl;
@@ -310,7 +309,7 @@ class _SplashScreenState extends State<SplashScreen>
             ),
             child: ClipOval(
               child: Image.asset(
-                'assets/images/zaraa_logo.png',
+                'assets/images/big_zaraa.png',
                 fit: BoxFit.cover,
               ),
             ),

@@ -8,6 +8,7 @@ import 'core/services/api_client.dart';
 import 'core/services/auth_service.dart';
 import 'core/services/cart_service.dart';
 import 'core/services/category_service.dart';
+import 'core/services/checkout_service.dart';
 import 'core/services/diagnosis_service.dart';
 import 'core/services/shop_service.dart';
 import 'core/services/weather_service.dart';
@@ -23,6 +24,8 @@ import 'cubits/diagnosis/diagnosis_cubit.dart';
 import 'cubits/shop/shop_cubit.dart';
 import 'cubits/weather/weather_cubit.dart';
 import 'cubits/orders/orders_cubit.dart';
+import 'cubits/orders/user_orders_cubit.dart';
+import 'cubits/checkout/checkout_cubit.dart';
 import 'cubits/admin/admin_orders_cubit.dart';
 import 'cubits/admin/admin_products_cubit.dart';
 import 'cubits/admin/admin_users_cubit.dart';
@@ -77,9 +80,20 @@ class ZaraaApp extends StatelessWidget {
         BlocProvider<CartCubit>(
           create: (_) => CartCubit(CartService()),
         ),
+        // Checkout cubit — manages checkout & payment lifecycle
+        BlocProvider<CheckoutCubit>(
+          create: (_) => CheckoutCubit(
+            checkoutService: CheckoutService(),
+            cartService: CartService(),
+          ),
+        ),
         // Orders cubit — Admin orders
         BlocProvider<OrdersCubit>(
           create: (_) => OrdersCubit(OrderService()),
+        ),
+        // User orders cubit — customer order history
+        BlocProvider<UserOrdersCubit>(
+          create: (_) => UserOrdersCubit(CheckoutService()),
         ),
         BlocProvider<AdminOrdersCubit>(
           create: (_) => AdminOrdersCubit(AdminOrdersService()),

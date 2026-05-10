@@ -29,7 +29,13 @@ class CartScreen extends StatelessWidget {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF1A1A1A)),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRoutes.dashboard);
+            }
+          },
         ),
       ),
       body: BlocBuilder<CartCubit, CartState>(
@@ -72,21 +78,9 @@ class CartScreen extends StatelessWidget {
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton(
-                    onPressed: () async {
-                      // Initiate payment flow
-                      final messenger = ScaffoldMessenger.of(context);
-                      final nav = context;
-                      
-                      try {
-                        await context.read<CartCubit>().pay();
-                        if (nav.mounted) {
-                          nav.go(AppRoutes.checkout);
-                        }
-                      } catch (e) {
-                        messenger.showSnackBar(
-                          SnackBar(content: Text('Payment failed: $e')),
-                        );
-                      }
+                    onPressed: () {
+                      // Navigate to checkout screen for shipping details & payment
+                      context.push(AppRoutes.checkout);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,

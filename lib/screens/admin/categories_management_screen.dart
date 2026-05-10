@@ -68,12 +68,15 @@ class _CategoriesManagementScreenState extends State<CategoriesManagementScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Categories Management',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
+                  Expanded(
+                    child: const Text(
+                      'Categories Management',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   IconButton(
@@ -113,20 +116,28 @@ class _CategoriesManagementScreenState extends State<CategoriesManagementScreen>
                                 ),
                                 title: Text(category.name, style: const TextStyle(fontWeight: FontWeight.bold)),
                                 subtitle: Text(category.description ?? 'No description'),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.edit, color: Colors.blue),
-                                      onPressed: () {
-                                        context.push('${AppRoutes.adminCategories}/edit', extra: category);
-                                      },
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete, color: Colors.red),
-                                      onPressed: () => _deleteCategory(category.id),
-                                    ),
-                                  ],
+                                trailing: SizedBox(
+                                  width: 96,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.edit, color: Colors.blue),
+                                        constraints: const BoxConstraints(),
+                                        padding: const EdgeInsets.all(8),
+                                        onPressed: () {
+                                          context.push('${AppRoutes.adminCategories}/edit', extra: category);
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete, color: Colors.red),
+                                        constraints: const BoxConstraints(),
+                                        padding: const EdgeInsets.all(8),
+                                        onPressed: () => _deleteCategory(category.id),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             );

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 class ProductRequestModel {
   final String name;
@@ -26,20 +27,24 @@ class ProductRequestModel {
   Future<FormData> toFormData() async {
     final Map<String, dynamic> data = {
       'Name': name,
-      'Status': status.toString(),
-      'Price': price.toString(),
-      'Quantity': quantity.toString(),
-      'Discount': discount.toString(),
-      'CategoryId': categoryId.toString(),
-      'BrandId': brandId.toString(),
+      'Description': description ?? '',
+      'Status': status,           // send as real bool for ASP.NET model binding
+      'Price': price,
+      'Quantity': quantity,
+      'Discount': discount,
+      'CategoryId': categoryId,
+      'BrandId': brandId,
     };
 
-    if (description != null && description!.isNotEmpty) {
-      data['Description'] = description;
+    if (mainImgPath != null && mainImgPath!.isNotEmpty) {
+      data['MainImg'] = await MultipartFile.fromFile(
+        mainImgPath!,
+        filename: mainImgPath!.split('/').last.split('\\').last,
+      );
     }
 
-    if (mainImgPath != null && mainImgPath!.isNotEmpty) {
-      data['MainImg'] = await MultipartFile.fromFile(mainImgPath!);
+    if (kDebugMode) {
+      debugPrint('│ ProductRequestModel.toFormData() fields: ${{ ...data }..remove("MainImg")}');
     }
 
     return FormData.fromMap(data);
